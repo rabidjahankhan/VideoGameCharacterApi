@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using VideoGameCharacterApi.Dtos;
 using VideoGameCharacterApi.Models;
@@ -20,6 +21,27 @@ namespace VideoGameCharacterApi.Controllers
         {
             var character = await service.GetCharacterByIdAsync(id);
             return character is null ? NotFound("Character not found") : Ok(character);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<CharacterResponse>> AddCharacter(CreateCharacterRequest character)
+        {
+            var createdCharacter = await service.AddCharacterAsync(character);
+            return CreatedAtAction(nameof(GetCharacter), new { id =  createdCharacter.Id }, createdCharacter);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateCharacter(int id, UpdateCharacterRequest character)
+        {
+            var update = await service.UpdateCharacterAsync(id, character);
+            return update ? NoContent() : NotFound("Character with the given Id was not found");
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteCharacter(int id)
+        {
+            var deleted = await service.DeleteCharacterAsync(id);
+            return deleted ? NoContent() : NotFound("Character with the given Id was not found.");
         }
     }
 }

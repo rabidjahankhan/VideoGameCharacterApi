@@ -7,19 +7,43 @@ namespace VideoGameCharacterApi.Services;
 
 public class VideoGameCharacterService(AppDbContext context) : IVideoGameCharacterService
 {
-    public Task<CharacterResponse> AddCharacterAsync(Character character)
+    public async Task<CharacterResponse> AddCharacterAsync(CreateCharacterRequest character)
     {
-        throw new NotImplementedException();
+        var newCharacter = new Character
+        {
+            Name = character.Name,
+            Game = character.Game,
+            Role = character.Role
+        };
+
+        context.Characters.Add(newCharacter);
+        await context.SaveChangesAsync();
+
+        return new CharacterResponse
+        {
+            Id = newCharacter.Id,
+            Name = character.Name,
+            Game = character.Game,
+            Role = character.Role
+        };
     }
 
-    public Task<bool> DeleteCharacterAsync(int id)
+    public async Task<bool> DeleteCharacterAsync(int id)
     {
-        throw new NotImplementedException();
+        var CharacterToDelete = await context.Characters.FindAsync(id);
+        if (CharacterToDelete is null)
+            return false;
+
+        context.Characters.Remove(CharacterToDelete);
+        await context.SaveChangesAsync();
+
+        return true;
     }
 
     public async Task<List<CharacterResponse>> GetAllCharactersAsync()
         => await context.Characters.Select(c => new CharacterResponse
         {
+            Id = c.Id,
             Name = c.Name,
             Game = c.Game,
             Role = c.Role
@@ -31,6 +55,7 @@ public class VideoGameCharacterService(AppDbContext context) : IVideoGameCharact
             .Where(c => c.Id == id)
             .Select(c => new CharacterResponse
             {
+                Id = c.Id,
                 Name = c.Name,
                 Game = c.Game,
                 Role = c.Role
@@ -39,8 +64,18 @@ public class VideoGameCharacterService(AppDbContext context) : IVideoGameCharact
         return result;
     }
 
-    public Task<bool> UpdateCharacterAsync(int id, Character character)
+    public async Task<bool> UpdateCharacterAsync(int id, UpdateCharacterRequest character)
     {
-        throw new NotImplementedException();
+        var existingCharacter = await context.Characters.FindAsync(id);
+        if (existingCharacter is null)
+            return false;
+
+        existingCharacter.Name = character.Name;
+        existingCharacter.Game = character.Game;
+        existingCharacter.Role = character.Role;
+
+        await context.SaveChangesAsync();
+
+        return true;
     }
 }
